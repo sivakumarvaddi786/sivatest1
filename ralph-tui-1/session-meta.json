@@ -1,0 +1,15 @@
+{
+  "id": "ec5f3f68-8f40-4e09-85d7-bd66ee47be1f",
+  "status": "interrupted",
+  "startedAt": "2026-02-22T14:00:35.080Z",
+  "updatedAt": "2026-02-22T18:26:03.208Z",
+  "agentPlugin": "claude",
+  "trackerPlugin": "json",
+  "prdPath": "./tasks/prd.json",
+  "currentIteration": 10,
+  "maxIterations": 12,
+  "totalTasks": 0,
+  "tasksCompleted": 7,
+  "cwd": "C:\\Users\\sivak\\rtest",
+  "endedAt": "2026-02-22T18:03:54.390Z"
+}

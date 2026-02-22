@@ -1,0 +1,86 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: US-020
+- **Task Title**: Streak System
+- **Description**: As a user, I want to maintain a daily habit streak so that I am motivated to complete at least 3 habit categories every day.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T18:19:33.765Z
+- **Ended At**: 2026-02-22T18:22:40.776Z
+- **Duration**: 3m 7s
+- **Input Tokens**: 63
+- **Output Tokens**: 9753
+- **Total Tokens**: 9816
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current codebase state before implementing the streak system.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m pattern: [96msrc/**/*.js[0m
+Let me read the key files to understand the current streak-related code.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\users.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\utils\date.js[0m
+Now I have a clear picture. Let me implement the streak system.
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "// Migration: add food habit tracking columns to d..." → "// Migration: add streak evaluation tracking to us..."
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\utils\streak.js[0m "import db from "../db/index.js";
+import { getTodayForTimezone } from "./date.js";
+
+/**
+ * Adds N days to a YYYY-MM-DD date string and returns the result as YYYY-MM-DD.
+ */
+function addDays(dateStr, da... (3858 chars)"
+[94m[TodoWrite][0m
+Now integrate streak evaluation into the dashboard and habits routes.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "import { getXpForNextLevel, DAILY_XP_CAP } from "...." → "import { getXpForNextLevel, DAILY_XP_CAP } from "...."
+Now add the streak evaluation call and categories completed count to the dashboard handler.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "router.get("/", (req, res) => {
+  const user = db
+..." → "router.get("/", (req, res) => {
+  // Evaluate stre..."
+Now add categories completed count to the dashboard response.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "  const mascotMood = user.current_streak > 0 ? "ha..." → "  const categoriesCompleted = countCompletedCatego..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "    streak: {
+      current: user.current_streak,
+..." → "    streak: {
+      current: user.current_streak,
+..."
+Now integrate streak evaluation into the habits GET route.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "import { capDailyXp, getLevelForXp } from "../util..." → "import { capDailyXp, getLevelForXp } from "../util..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "router.get("/today", (req, res) => {
+  const today..." → "router.get("/today", (req, res) => {
+  // Evaluate..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on changed files $ cd /c/Users/sivak/rtest && npx eslint src/utils/streak.js src/routes/dashboard.js src/routes/habits....
+Lint passes clean. Now let me document the learnings.
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - All 5 handlers follow the same pattern: comput..." → "  - All 5 handlers follow the same pattern: comput..."
+[94m[TodoWrite][0m
+All acceptance criteria are satisfied:
+
+- **AC1** (streak maintained if ≥3 of 5 categories completed): `countCompletedCategories()` checks all 5 categories against their goals, `evaluateStreakIfNeeded()` uses threshold of 3
+- **AC2** (streak increments at end-of-day reset): Lazy evaluation on first request of new day evaluates previous day(s) and increments streak
+- **AC3** (streak resets to 0 if <3 and no shield): Shield consumption logic in the evaluation loop — if no shield available, `currentStreak = 0`
+- **AC4** (current/longest streak stored on user record): `current_streak` and `longest_streak` columns already existed; updated by `evaluateStreakIfNeeded()`
+- **AC5** (streak visible on dashboard): Dashboard already returned streak data; now enhanced with `categoriesCompletedToday`, `categoriesRequired`, and `onTrack` fields
+
+**Files changed:**
+- `src/db/index.js` — added `streak_last_evaluated_date` migration
+- `src/utils/streak.js` — new file with streak evaluation logic
+- `src/routes/dashboard.js` — streak evaluation call + enriched streak response
+- `src/routes/habits.js` — streak evaluation call on habits GET
+- `.ralph-tui/progress.md` — documented learnings
+
+<promise>COMPLETE</promise>

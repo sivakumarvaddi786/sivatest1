@@ -1,0 +1,86 @@
+# Iteration 8 Log
+
+## Metadata
+
+- **Task ID**: US-008
+- **Task Title**: Onboarding Step 3 — Goal Selection
+- **Description**: As a new user, I want to have my daily health goals pre-filled based on my BMI and confirm them so that I start with appropriate targets.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:22:14.624Z
+- **Ended At**: 2026-02-22T14:25:24.307Z
+- **Duration**: 3m 9s
+- **Input Tokens**: 70
+- **Output Tokens**: 11231
+- **Total Tokens**: 11301
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\.claude\projects\C--Users-sivak-rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/.ralph-tui/progress.md[0m
+[94m[Bash][0m $ ls /c/Users/sivak/rtest/
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/db/index.js[0m
+Now let me check the middleware and the full project structure:
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/middleware/requireOnboardingComplete.js[0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/index.js[0m
+Now I have a clear picture of the codebase. Let me implement US-008:
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/db/index.js[0m edit: "  CREATE TABLE IF NOT EXISTS sessions (
+    id    ..." → "  CREATE TABLE IF NOT EXISTS sessions (
+    id    ..."
+[94m[TodoWrite][0m
+Now update the onboarding routes — add the `uuid` import, the `computeGoalPrefill` helper, update the status endpoint, and add step 3:
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m edit: "import { Router } from "express";
+import { body, v..." → "import { Router } from "express";
+import { body, v..."
+Now add the `computeGoalPrefill` helper after `MASCOT_MAP`:
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m edit: "/**
+ * GET /api/onboarding/status" → "/**
+ * Computes pre-filled health goals for onboar..."
+Now update the status endpoint to include habits_config and goal prefill:
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m edit: "router.get("/status", (req, res) => {
+  const user..." → "router.get("/status", (req, res) => {
+  const user..."
+[94m[TodoWrite][0m
+Now add the step 3 validation and route at the end of the file (before `export default router`):
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m edit: "export default router;" → "const step3Validation = [
+  body("movement_prefere..."
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/middleware/requireOnboardingComplete.js[0m edit: "const TOTAL_ONBOARDING_STEPS = 2;" → "const TOTAL_ONBOARDING_STEPS = 3;"
+[94m[TodoWrite][0m
+[94m[Bash][0m $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+Lint passes cleanly. Let me do a quick review of the final state of the modified files:
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m
+Everything looks correct. Now let me append the learnings to progress.md:
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95mC:/Users/sivak/rtest/.ralph-tui/progress.md[0m edit: "  - Mascot in status response returns `null` when ..." → "  - Mascot in status response returns `null` when ..."
+[94m[TodoWrite][0m
+All acceptance criteria are met:
+
+| AC | Implementation |
+|---|---|
+| Step goal: 5,000 for Overweight/Obese; 10,000 for Normal/Underweight | `computeGoalPrefill()` checks `["overweight","obese_1","obese_2"]` |
+| Hydration: weight(kg) × 0.033 L → glasses | `Math.round((weightKg * 0.033) / 0.25)` |
+| Sleep goal: 7–8 hours | `sleep_hours_min: 7, sleep_hours_max: 8` (fixed) |
+| Movement preference: chair exercises, walking, jumping jacks | Validated via `isIn(["chair_exercises","walking","jumping_jacks"])` |
+| Food habit goal: 2 vegetables/day | `vegetables_per_day: 2` (fixed default) |
+| Cannot skip step | `movement_preference` is required; step 2 data existence is checked |
+| Saved to `habits_config` table | UPSERT via `ON CONFLICT(user_id) DO UPDATE SET ...` |
+
+**Files changed:**
+- `src/db/index.js` — added `habits_config` table
+- `src/routes/onboarding.js` — added `uuid` import, `computeGoalPrefill()`, updated status endpoint, added step 3 validation + route
+- `src/middleware/requireOnboardingComplete.js` — bumped `TOTAL_ONBOARDING_STEPS` to 3
+
+<promise>COMPLETE</promise>

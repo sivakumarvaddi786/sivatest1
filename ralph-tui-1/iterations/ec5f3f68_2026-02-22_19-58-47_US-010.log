@@ -1,0 +1,61 @@
+# Iteration 10 Log
+
+## Metadata
+
+- **Task ID**: US-010
+- **Task Title**: Onboarding Gate Enforcement
+- **Description**: As a product, I need to ensure users cannot access the dashboard until all onboarding steps are completed so that every user has the data needed for personalisation.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:28:47.333Z
+- **Ended At**: 2026-02-22T14:29:47.827Z
+- **Duration**: 1m 0s
+- **Input Tokens**: 43
+- **Output Tokens**: 3272
+- **Total Tokens**: 3315
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\.claude\projects\C--Users-sivak-rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Bash][0m $ ls /c/Users/sivak/rtest/.ralph-tui/ 2>/dev/null || echo "Directory not found"
+[94m[Bash][0m $ ls /c/Users/sivak/rtest/src/ 2>/dev/null
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Bash][0m $ ls /c/Users/sivak/rtest/src/routes/ && ls /c/Users/sivak/rtest/src/middleware/ && ls /c/Users/sivak/...
+Let me review the existing implementation to see if US-010 is already complete.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireOnboardingComplete.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+The implementation looks complete. Let me verify by running quality checks.
+[94m[Bash][0m $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+[94m[Bash][0m $ cd /c/Users/sivak/rtest && cat package.json | grep -E '"scripts"' -A 10
+Lint passes cleanly. Now let me verify all three acceptance criteria are met by reviewing the code:
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+All three acceptance criteria are already fully met by the prior US-005 through US-009 implementations:
+
+1. **Dashboard gate** — `requireOnboardingComplete` middleware (applied via `router.use` in `dashboard.js`) blocks access and returns `403` with `onboardingStep: N` so the client knows where to redirect.
+
+2. **Per-step persistence with resume** — Every step uses `onboarding_step = MAX(onboarding_step, N)` preventing regression, and `GET /api/onboarding/status` returns all saved fields for each step.
+
+3. **Server-side completed state** — `onboarding_step` is stored in the SQLite `users` table; `TOTAL_ONBOARDING_STEPS = 4` is the gate constant checked by the middleware.
+
+Now I'll append to the progress file as required.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - `TOTAL_ONBOARDING_STEPS = 4` is the only chang..." → "  - `TOTAL_ONBOARDING_STEPS = 4` is the only chang..."
+US-010 is already fully implemented by the work from US-005 through US-009. All three acceptance criteria are met:
+
+1. **Dashboard blocked until onboarding complete** — `requireOnboardingComplete` middleware returns `403 + { onboardingStep: N }` for any incomplete user hitting `/api/dashboard`
+2. **Per-step persistence with resume** — `MAX(onboarding_step, N)` pattern prevents regression; `GET /api/onboarding/status` returns all saved data for every step
+3. **Server-side completed state** — `onboarding_step = 4` in the SQLite `users` table is the authoritative completion flag, checked by `TOTAL_ONBOARDING_STEPS = 4` in the middleware
+
+Lint passes with no issues.
+
+<promise>COMPLETE</promise>

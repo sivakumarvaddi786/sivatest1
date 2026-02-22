@@ -1,0 +1,90 @@
+# Iteration 5 Log
+
+## Metadata
+
+- **Task ID**: US-005
+- **Task Title**: Onboarding Step 1 — Name, Age, Gender
+- **Description**: As a new verified user, I want to provide my basic personal information during onboarding so that the app can personalise my experience.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:14:22.248Z
+- **Ended At**: 2026-02-22T14:17:32.479Z
+- **Duration**: 3m 10s
+- **Input Tokens**: 5172
+- **Output Tokens**: 11523
+- **Total Tokens**: 16695
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Bash][0m List all source files $ find /c/Users/sivak/rtest/src -type f | sort
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireAuth.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireEmailVerified.js[0m
+Now I have a clear picture of the codebase. Let me implement US-005.
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "  CREATE TABLE IF NOT EXISTS users (
+    id       ..." → "  CREATE TABLE IF NOT EXISTS users (
+    id       ..."
+Now add the migration for existing databases (after the `db.exec` block):
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "export default db;" → "// Migration: add onboarding_step to existing data..."
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m "import { Router } from "express";
+import { body, validationResult } from "express-validator";
+import db from "../db/index.js";
+import { requireAuth } from "../middleware/requireAuth.js";
+import { requ... (2868 chars)"
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\middleware\requireOnboardingComplete.js[0m "import db from "../db/index.js";
+
+/**
+ * The number of onboarding steps that must be completed before a user
+ * can access protected areas like the dashboard. Increment this constant
+ * as new onboard... (1136 chars)"
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "import { Router } from "express";
+import { require..." → "import { Router } from "express";
+import { require..."
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\index.js[0m edit: "import authRouter from "./routes/auth.js";
+import ..." → "import authRouter from "./routes/auth.js";
+import ..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\index.js[0m edit: "// Mount routes
+app.use("/api/auth", authRouter);
+..." → "// Mount routes
+app.use("/api/auth", authRouter);
+..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on the project $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+[94m[Bash][0m Syntax-check all new and modified files $ cd /c/Users/sivak/rtest && node --check src/routes/onboarding.js && node --check src/middleware/requ...
+All checks pass. Let me do a quick smoke test to verify the server starts correctly:
+[94m[Bash][0m Start server briefly to verify no runtime errors $ cd /c/Users/sivak/rtest && timeout 5 node src/index.js 2>&1 || true
+Server starts cleanly. Now update progress.md:
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - 401 = "session expired/invalid", 403 = "email ..." → "  - 401 = "session expired/invalid", 403 = "email ..."
+[94m[TodoWrite][0m
+US-005 is implemented. Here's a summary of what was built:
+
+**New endpoints:**
+- `GET /api/onboarding/status` — returns `onboardingStep` + saved `{name, age, gender}` so the client can resume if the browser is closed
+- `POST /api/onboarding/step1` — validates and persists name (string, ≤100 chars), age (integer 13–120), gender (`male`/`female`/`other`); advances `onboarding_step` to 1
+
+**New middleware:**
+- `requireOnboardingComplete` — guards dashboard with 403 if `onboarding_step < 1`; includes current step in the response so clients can redirect appropriately
+
+**DB change:**
+- Added `onboarding_step INTEGER DEFAULT 0` to the `users` table; an `ALTER TABLE` with try/catch handles existing databases
+
+**Dashboard updated** to require `requireAuth → requireEmailVerified → requireOnboardingComplete` in order.
+
+<promise>COMPLETE</promise>

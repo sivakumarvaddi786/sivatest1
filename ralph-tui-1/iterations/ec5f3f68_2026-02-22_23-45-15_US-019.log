@@ -1,0 +1,161 @@
+# Iteration 5 Log
+
+## Metadata
+
+- **Task ID**: US-019
+- **Task Title**: XP System and Level Tracking
+- **Description**: As a user, I want to earn XP for completing habits and level up over time so that I feel rewarded for my consistent effort.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T18:15:15.029Z
+- **Ended At**: 2026-02-22T18:19:32.662Z
+- **Duration**: 4m 17s
+- **Input Tokens**: 24777
+- **Output Tokens**: 15602
+- **Total Tokens**: 40379
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current codebase state before implementing the XP system.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m pattern: [96msrc/**/*.js[0m
+Let me read the key files to understand what's already implemented for XP.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\users.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+Now I have a clear picture. Let me analyze the acceptance criteria against what exists:
+
+1. **XP awarded per task** — Already implemented (US-012–016)
+2. **Total XP stored/displayed** — `users.xp_total` exists, dashboard/profile return it
+3. **Level thresholds** — `users.level` exists but is never updated when XP changes. Missing.
+4. **Level-up animation trigger** — No `levelUp` flag in responses. Missing.
+5. **Daily XP cap ~150** — No cap enforcement. Missing.
+
+I need to add: level calculation, level updates on XP change, level-up detection in responses, and daily XP cap.
+[94m[TodoWrite][0m
+First, I'll create the XP utility module.
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\utils\xp.js[0m "/**
+ * XP System and Level Tracking (US-019)
+ *
+ * Level thresholds:
+ *   Level 1 = 0 XP
+ *   Level 2 = 500 XP
+ *   Level 3 = 1,200 XP
+ *   Each subsequent level requires ~20% more XP than the previou... (2007 chars)"
+[94m[TodoWrite][0m
+Now I need to update `src/routes/habits.js` to:
+1. Import the XP utilities
+2. Add a shared helper that applies XP cap, updates level, and detects level-up
+3. Modify each handler to use this helper
+
+The pattern is the same in all handlers: before awarding XP, cap it; in the transaction, also update level; return `levelUp` info. I'll create a shared function and modify each handler.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "import { Router } from "express";
+import { body, p..." → "import { Router } from "express";
+import { body, p..."
+Now I need to add a helper function that applies XP with capping and level updates. I'll add it after the constants section. Let me also think about what needs to change in each handler:
+
+Each handler currently:
+1. Computes `xpDelta`
+2. Adds it to `fields.xp_earned`
+3. In the transaction, updates `users SET xp_total = xp_total + xpDelta`
+
+I need to change each to:
+1. Compute raw `xpDelta`
+2. Cap it: `xpDelta = capDailyXp(currentDayXp, rawXpDelta)`
+3. Add capped delta to `fields.xp_earned`
+4. In the transaction, also update level and capture whether level-up occurred
+5. Return `levelUp` info in the response
+
+The cleanest approach: create a helper `applyXpInTransaction(userId, xpDelta)` that updates xp_total and level, returns `{ previousLevel, newLevel }`.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "// US-016: food habit constants" → "/**
+ * Applies XP to a user within an existing tra..."
+Now I need to update each of the 5 handlers. Let me update them one by one. I'll modify each handler to: (a) cap the XP delta, (b) use `applyXpToUser` instead of raw `UPDATE users SET xp_total = xp_total + ?`, and (c) capture and return level-up info.
+
+Starting with `handleStepsUpdate`:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "  // XP: goal completion (awarded once per day)
+  ..." → "  // XP: goal completion (awarded once per day)
+  ..."
+Now replace the `UPDATE users SET xp_total` in the steps handler transaction with `applyXpToUser`:
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    if (xpDelta > 0) {
+      db.prepare("UPDATE us..." → "    let levelInfo = { leveledUp: false };
+    if (..."
+Now update `handleMovementUpdate` — add cap and level logic:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "  const prevXpAwarded = existing?.movement_xp_awar..." → "  const prevXpAwarded = existing?.movement_xp_awar..."
+Now replace the `UPDATE users` in movement transaction and add level-up to the response:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    if (xpDelta > 0) {
+      db.prepare("UPDATE us..." → "    let levelInfo = { leveledUp: false };
+    if (..."
+Now update `handleHydrationUpdate` — add cap and level:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "  const prevXpGlasses = existing?.hydration_xp_gla..." → "  const prevXpGlasses = existing?.hydration_xp_gla..."
+Now replace the `UPDATE users` in hydration transaction and add level-up to response:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    if (xpDelta > 0) {
+      db.prepare("UPDATE us..." → "    let levelInfo = { leveledUp: false };
+    if (..."
+Now update `handleSleepUpdate` — add cap and level:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "  // XP calculations
+  let xpDelta = 0;
+
+  const p..." → "  // XP calculations
+  let rawXpDelta = 0;
+
+  cons..."
+Now replace the `UPDATE users` in sleep transaction and add level-up to response:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    if (xpDelta > 0) {
+      db.prepare("UPDATE us..." → "    let levelInfo = { leveledUp: false };
+    if (..."
+Now update `handleFoodUpdate` — add cap and level:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "  const prevXpAwarded = existing?.[habit.xpCol] ??..." → "  const prevXpAwarded = existing?.[habit.xpCol] ??..."
+Now replace the `UPDATE users` in food transaction and add level-up to response:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    if (xpDelta > 0) {
+      db.prepare("UPDATE us..." → "    let levelInfo = { leveledUp: false };
+    if (..."
+Now update the dashboard to include level progress info (XP to next level):
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "import db from "../db/index.js";
+import { MOVEMENT..." → "import db from "../db/index.js";
+import { MOVEMENT..."
+Now update the dashboard response to include level progress:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "    xpTotal: user.xp_total,
+    level: user.level," → "    xpTotal: user.xp_total,
+    level: user.level,..."
+Now update the users/me stats endpoint to include level progress info:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\users.js[0m edit: "import { Router } from "express";
+import { body, v..." → "import { Router } from "express";
+import { body, v..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\users.js[0m edit: "  return res.json({
+    xpTotal: user.xp_total,
+  ..." → "  return res.json({
+    xpTotal: user.xp_total,
+  ..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on all source files $ cd /c/Users/sivak/rtest && npx eslint src/ 2>&1
+Lint passes clean. Let me also verify the app starts without errors:
+[94m[Bash][0m Verify app starts without import errors $ cd /c/Users/sivak/rtest && timeout 5 node src/index.js 2>&1 || true
+[94m[TodoWrite][0m
+Now update progress.md:
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - `PATCH /api/users/me` already accepted `timezo..." → "  - `PATCH /api/users/me` already accepted `timezo..."
+[94m[TodoWrite][0m
+All acceptance criteria are now satisfied:
+
+1. **XP awarded per completed task immediately** — Already implemented in US-012–016; each habit handler awards XP in the same transaction as the habit update
+2. **Total XP stored and displayed** — `users.xp_total` updated via `applyXpToUser()`; returned on dashboard (`xpTotal`), profile (`GET /api/users/me`), and stats (`GET /api/users/me/stats`)
+3. **Level thresholds** — Level 1=0, Level 2=500, Level 3=1200, each subsequent +20% increment; computed in `src/utils/xp.js` via `getLevelForXp()`; `users.level` updated atomically with XP in every transaction
+4. **Level-up triggers animation** — Every habit response includes `levelUp: { previousLevel, newLevel }` when the XP threshold is crossed (or `null` otherwise), enabling immediate client-side animation
+5. **Daily XP cap ~150** — `capDailyXp()` enforces a 150 XP daily maximum using `daily_logs.xp_earned` as the running counter
+
+**Files changed:**
+- `src/utils/xp.js` — new file (level thresholds, cap logic)
+- `src/routes/habits.js` — all 5 handlers updated with cap + level + level-up
+- `src/routes/dashboard.js` — added `xpForNextLevel`, `dailyXpEarned`, `dailyXpCap`
+- `src/routes/users.js` — added `xpForNextLevel` to stats
+- `.ralph-tui/progress.md` — documented learnings
+
+<promise>COMPLETE</promise>

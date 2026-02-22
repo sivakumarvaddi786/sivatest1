@@ -1,0 +1,89 @@
+# Iteration 3 Log
+
+## Metadata
+
+- **Task ID**: US-016
+- **Task Title**: Daily Habit Checklist — Food Habits
+- **Description**: As a user, I want to log my daily food habits via simple checkboxes so that I can build better eating patterns.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T18:09:27.603Z
+- **Ended At**: 2026-02-22T18:12:22.347Z
+- **Duration**: 2m 54s
+- **Input Tokens**: 72
+- **Output Tokens**: 8716
+- **Total Tokens**: 8788
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current state of the project.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m pattern: [96msrc/**/*.{js,ts,tsx,jsx}[0m
+Let me read the key files to understand the current implementation.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+Now I have a clear picture. Let me implement US-016 — food habit checkboxes with XP awards.
+[94m[TodoWrite][0m
+Adding the 6 migration columns for food habit tracking (3 checkbox states + 3 XP-awarded flags):
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "try {
+  db.exec("ALTER TABLE daily_logs ADD COLUMN..." → "try {
+  db.exec("ALTER TABLE daily_logs ADD COLUMN..."
+[94m[TodoWrite][0m
+Now adding the food habit handler and updating the valid categories in `habits.js`:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "const VALID_CATEGORIES = ["steps", "hydration", "s..." → "const VALID_CATEGORIES = ["steps", "hydration", "s..."
+Add food habit constants and the `FOOD_HABITS` definition:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "// US-015: sleep XP constants
+const SLEEP_LOG_XP =..." → "// US-015: sleep XP constants
+const SLEEP_LOG_XP =..."
+Now add the food handler branch in the PATCH route and add food data to the GET response:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    // Sleep has dedicated logic (start/end times,..." → "    // Sleep has dedicated logic (start/end times,..."
+Now add the `handleFoodUpdate` function. I'll add it before the `handleStepsUpdate` function:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "/**
+ * Handles step updates with source tracking, ..." → "/**
+ * Handles food habit checkbox updates with pe..."
+Now add food habits to the GET `/today` response:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "  return res.json({
+    date: today,
+    goals: co..." → "  return res.json({
+    date: today,
+    goals: co..."
+Now export `FOOD_HABITS` and `buildFoodHabitsResponse` for use by the dashboard:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "export { MOVEMENT_EXERCISES };
+export default rout..." → "export { MOVEMENT_EXERCISES, FOOD_HABITS, buildFoo..."
+Also need to make the `value` validator skip the `food` category (food uses `item`/`checked` body fields instead):
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    body("value")
+      .if(param("category").not(..." → "    body("value")
+      .if(param("category").not(..."
+[94m[TodoWrite][0m
+Now update the dashboard to include the food habits checklist:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "import { MOVEMENT_EXERCISES } from "./habits.js";" → "import { MOVEMENT_EXERCISES, buildFoodHabitsRespon..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "      sleep: {
+        sleepStart: habitLog?.sleep..." → "      sleep: {
+        sleepStart: habitLog?.sleep..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on changed files $ cd /c/Users/sivak/rtest && npx eslint src/routes/habits.js src/routes/dashboard.js src/db/index.js 2...
+Lint passes clean. Let me also do a quick syntax check by trying to import the modules:
+[94m[Bash][0m Quick import check for db module $ cd /c/Users/sivak/rtest && node -e "import('./src/db/index.js').then(() => console.log('db ok')).cat...
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - Sleep hours only calculated when both start an..." → "  - Sleep hours only calculated when both start an..."
+[94m[TodoWrite][0m
+All acceptance criteria are satisfied:
+
+- **Checklist includes all 3 food habit items** with correct XP values: "Ate 2 servings of vegetables" (10 XP), "Skipped junk food today" (10 XP), "Ate breakfast" (5 XP)
+- **Honour-system checkboxes**: `PATCH /api/habits/today/food` accepts `{ item, checked }` — no verification required
+- **XP awarded immediately**: On checking an item, XP is added to both `daily_logs.xp_earned` and `users.xp_total` in a transaction
+- **Items visually marked as complete**: Response includes `foodHabits` array with `checked: true/false` per item, exposed on both `/api/habits/today` and `/api/dashboard`
+
+**Files changed:**
+- `src/db/index.js` — 6 new migration columns for food habit tracking
+- `src/routes/habits.js` — `FOOD_HABITS` config, `handleFoodUpdate()`, `buildFoodHabitsResponse()`, "food" category support
+- `src/routes/dashboard.js` — `foodHabits` added to `todayChecklist`
+
+<promise>COMPLETE</promise>

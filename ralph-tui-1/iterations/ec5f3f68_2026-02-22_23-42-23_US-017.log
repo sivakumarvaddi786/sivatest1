@@ -1,0 +1,100 @@
+# Iteration 4 Log
+
+## Metadata
+
+- **Task ID**: US-017
+- **Task Title**: Daily Checklist Midnight Reset
+- **Description**: As a user, I want my daily checklist to reset at midnight in my local timezone so that I get a fresh start each day.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T18:12:23.409Z
+- **Ended At**: 2026-02-22T18:15:13.939Z
+- **Duration**: 2m 50s
+- **Input Tokens**: 76
+- **Output Tokens**: 8365
+- **Total Tokens**: 8441
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current codebase state before implementing US-017.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m pattern: [96msrc/**/*.js[0m
+Let me read the key files to understand the current daily_logs schema and habits handling.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m
+Let me also check users.js and index.js.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\users.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\utils\date.js[0m "/**
+ * Returns today's date (YYYY-MM-DD) in the given IANA timezone.
+ * Falls back to UTC if timezone is invalid or not provided.
+ *
+ * Uses "en-CA" locale which natively formats as YYYY-MM-DD.
+ */
+ex... (574 chars)"
+[94m[TodoWrite][0m
+Now add `timezone` to onboarding step 1 validation and save logic.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m edit: "const step1Validation = [
+  body("name")
+    .isSt..." → "const step1Validation = [
+  body("name")
+    .isSt..."
+Now update the step 1 handler to save timezone.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m edit: "  const { name, gender } = req.body;
+  const age =..." → "  const { name, gender, timezone } = req.body;
+  c..."
+Also update the onboarding status endpoint to return timezone.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m edit: "    "SELECT name, age, gender, height_cm, weight_k..." → "    "SELECT name, age, gender, height_cm, weight_k..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m edit: "      teamReminderAt: user.team_reminder_at || nul..." → "      teamReminderAt: user.team_reminder_at || nul..."
+[94m[TodoWrite][0m
+Now update `habits.js` — import the utility and replace all UTC date calculations with timezone-aware ones. The user's timezone is available via `req.user.timezone` (set by `requireAuth` middleware which does `SELECT * FROM users`).
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "import { Router } from "express";
+import { body, p..." → "import { Router } from "express";
+import { body, p..."
+Now replace the `today` calculations in the GET handler and PATCH handler.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "router.get("/today", (req, res) => {
+  const today..." → "router.get("/today", (req, res) => {
+  const today..."
+Now the PATCH handler — there are two lines computing `today` there:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    const { category } = req.params;
+    const { v..." → "    const { category } = req.params;
+    const { v..."
+[94m[TodoWrite][0m
+Now update `dashboard.js`:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "import { Router } from "express";
+import { require..." → "import { Router } from "express";
+import { require..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "    "SELECT name, mascot_id, mascot_name, current_..." → "    "SELECT name, mascot_id, mascot_name, current_..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "  const today = new Date().toISOString().slice(0, ..." → "  const today = getTodayForTimezone(user.timezone)..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on all source files $ cd /c/Users/sivak/rtest && npx eslint src/ 2>&1
+Lint passes cleanly. Let me verify the final state of the changed files.
+[94m[TodoWrite][0m
+Now update progress.md:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - Named exports (`FOOD_HABITS`, `buildFoodHabits..." → "  - Named exports (`FOOD_HABITS`, `buildFoodHabits..."
+[94m[TodoWrite][0m
+All acceptance criteria are met:
+
+1. **Checklist resets daily at midnight in user's local timezone** — `getTodayForTimezone()` computes "today" using the user's IANA timezone, so when midnight passes in their timezone, all queries (`GET /today`, `PATCH /today/:category`, `GET /dashboard`) resolve to the new date and return an empty checklist.
+
+2. **Previous day's log is preserved** — `daily_logs` records are keyed by `UNIQUE(user_id, log_date)` and are never deleted. The "reset" is implicit — a new date means a new (or absent) record.
+
+3. **New empty daily_log record is created for the new day** — On-demand creation already exists; the first habit update on the new date creates a fresh `daily_logs` row via the INSERT path in each handler.
+
+4. **User's timezone is captured during onboarding/account setup** — Optional `timezone` field added to onboarding step 1; also updatable via the existing `PATCH /api/users/me` endpoint.
+
+### Files changed:
+- `src/utils/date.js` — **new**: `getTodayForTimezone()` utility
+- `src/routes/onboarding.js` — timezone in step 1 validation, save, and status response
+- `src/routes/habits.js` — timezone-aware date in GET and PATCH handlers
+- `src/routes/dashboard.js` — timezone-aware date for today's checklist
+
+<promise>COMPLETE</promise>

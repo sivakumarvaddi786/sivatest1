@@ -1,0 +1,753 @@
+{
+  "name": "LifePush — Daily Health Habit Tracker",
+  "branchName": "feature/lifepush-mvp",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "User Registration",
+      "description": "As a new user, I want to register with my email and password so that I can create a LifePush account.",
+      "acceptanceCriteria": [
+        "User can register with a valid email and password (min 8 chars, 1 uppercase, 1 number)",
+        "Duplicate email addresses are rejected with a clear error message",
+        "Passwords are stored hashed with bcrypt (cost factor 12)",
+        "HTTPS is enforced on all auth endpoints",
+        "Registration triggers an email verification send"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-002",
+      "title": "Email Verification",
+      "description": "As a registered user, I want to verify my email address so that I can access the app and confirm my account is real.",
+      "acceptanceCriteria": [
+        "Verification email is sent immediately after registration",
+        "Clicking the verification link marks the account as verified",
+        "Unverified users cannot access the dashboard",
+        "Verification link is unique per user and single-use",
+        "User can request a resend of the verification email"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-003",
+      "title": "Password Reset via Email",
+      "description": "As a user who forgot my password, I want to reset it via a secure email link so that I can regain access to my account.",
+      "acceptanceCriteria": [
+        "User can request a password reset from the login page",
+        "Reset email is sent to the registered address",
+        "Reset link expires after 1 hour",
+        "Expired or used links show a clear error",
+        "Successful reset allows login with the new password"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-004",
+      "title": "Session Management",
+      "description": "As a logged-in user, I want my session to be maintained securely so that I am not forced to log in repeatedly.",
+      "acceptanceCriteria": [
+        "Session token is issued on successful login",
+        "Session expires after 30 days of inactivity",
+        "User is redirected to login when session expires",
+        "User can explicitly log out, which invalidates the session token"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-001"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-005",
+      "title": "Onboarding Step 1 — Name, Age, Gender",
+      "description": "As a new verified user, I want to provide my basic personal information during onboarding so that the app can personalise my experience.",
+      "acceptanceCriteria": [
+        "User is presented with name, age, and gender fields after email verification",
+        "All fields are required before proceeding to the next onboarding step",
+        "Progress is saved so the user can resume if the browser is closed",
+        "User cannot access the dashboard until all onboarding steps are complete"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-002"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-006",
+      "title": "Onboarding Step 2 — Height, Weight, BMI Calculation",
+      "description": "As a new user, I want to enter my height and weight so that the app can calculate my BMI and assign appropriate goals.",
+      "acceptanceCriteria": [
+        "Height input is in centimetres and weight input is in kilograms (no unit switching in MVP)",
+        "BMI is calculated automatically using the formula: weight(kg) / height(m)²",
+        "BMI category is displayed with a motivational label (e.g., 'Let's get moving')",
+        "The word 'obese' is never shown to the user; neutral motivational labels are used instead",
+        "Input is rejected if resulting BMI would be < 10 or > 60",
+        "Progress is saved after this step"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-005"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-007",
+      "title": "BMI-Based Mascot Assignment",
+      "description": "As a new user, I want to be assigned a starter mascot based on my BMI category so that I have a personalised companion for my health journey.",
+      "acceptanceCriteria": [
+        "Mascot is automatically assigned based on BMI category at the end of onboarding step 2",
+        "Underweight → Baby Flamingo, Normal → Energetic Fox, Overweight → Chunky Bear, Obese Class I → Sleepy Panda, Obese Class II+ → Cozy Sloth",
+        "Mascot is displayed prominently on the dashboard home screen",
+        "Mascot reacts to streak status (happy animation = streak active, sad = streak broken)"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-006"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-008",
+      "title": "Onboarding Step 3 — Goal Selection",
+      "description": "As a new user, I want to have my daily health goals pre-filled based on my BMI and confirm them so that I start with appropriate targets.",
+      "acceptanceCriteria": [
+        "System pre-fills daily step goal (5,000 for Overweight/Obese; 10,000 for Normal/Underweight)",
+        "Hydration target is auto-calculated: weight(kg) × 0.033 litres, converted to glasses",
+        "Sleep goal defaults to 7–8 hours",
+        "User selects movement preference from: chair exercises, walking, jumping jacks",
+        "Food habit goal shown (eat 2 vegetables per day)",
+        "User cannot skip this step",
+        "Goals are saved to habits_config table"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-006"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-009",
+      "title": "Onboarding Step 4 — Team Prompt",
+      "description": "As a new user, I want to be prompted to create or join a team during onboarding so that I can start with social accountability.",
+      "acceptanceCriteria": [
+        "User is presented with options: Create a team, Join via invite code, or Skip",
+        "Skipping shows a reminder notification after 48 hours prompting the user to join a team",
+        "Creating or joining a team during onboarding completes that step immediately",
+        "Onboarding is considered complete after this step and the user is redirected to the dashboard"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-008"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-010",
+      "title": "Onboarding Gate Enforcement",
+      "description": "As a product, I need to ensure users cannot access the dashboard until all onboarding steps are completed so that every user has the data needed for personalisation.",
+      "acceptanceCriteria": [
+        "Any attempt to navigate to the dashboard before completing onboarding redirects the user to their current onboarding step",
+        "Onboarding progress is persisted per step so users can resume without starting over",
+        "Completed onboarding state is stored server-side"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-005",
+        "US-006",
+        "US-008",
+        "US-009"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-011",
+      "title": "Dashboard Home Screen",
+      "description": "As an onboarded user, I want a dashboard home screen showing my mascot, today's checklist, and my streak so that I get a clear daily overview.",
+      "acceptanceCriteria": [
+        "Dashboard displays the user's mascot prominently",
+        "Current streak count is visible",
+        "Today's habit checklist is accessible from the dashboard",
+        "XP total and current level are displayed",
+        "Ad banner is shown at the bottom of the page (non-intrusive)"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-010"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-012",
+      "title": "Daily Habit Checklist — Steps",
+      "description": "As a user, I want to log my daily steps so that I can earn XP and track whether I met my step goal.",
+      "acceptanceCriteria": [
+        "User can manually enter step count or sync from Google Fit (Android Chrome)",
+        "Step goal shown is based on user's BMI-assigned target (5,000 or 10,000)",
+        "Completing the step goal awards 20 XP (5k target) or 40 XP (10k target) immediately",
+        "Manual entries are capped at 50,000 steps/day",
+        "If both Google Fit and manual entries exist, the higher value is used",
+        "Bonus: logging 500 extra steps every 2 hours awards +5 XP (manual)"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-011"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-013",
+      "title": "Daily Habit Checklist — Movement",
+      "description": "As a user, I want to complete and log my daily movement routine so that I can earn XP and build an exercise habit.",
+      "acceptanceCriteria": [
+        "User sees a preset routine of 3 exercises chosen during onboarding",
+        "Options include: jumping jacks (20), chair squats (15), shoulder rolls (10), calf raises (20)",
+        "Completing the daily movement routine awards 15 XP",
+        "Movement completion is a boolean (done / not done) for the day"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-011"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-014",
+      "title": "Daily Habit Checklist — Hydration",
+      "description": "As a user, I want to log each glass of water I drink so that I can track whether I hit my daily hydration target.",
+      "acceptanceCriteria": [
+        "User can tap to log each glass of water consumed",
+        "Daily water target is displayed (calculated at onboarding)",
+        "Each glass logged awards 5 XP",
+        "Hitting the full daily water target awards an additional 20 XP",
+        "Progress is shown as current glasses vs. target glasses"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-011"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-015",
+      "title": "Daily Habit Checklist — Sleep",
+      "description": "As a user, I want to log my sleep start and wake-up times so that I can track whether I am getting enough sleep.",
+      "acceptanceCriteria": [
+        "User can log sleep start time (manual entry)",
+        "User can log wake-up time (manual entry)",
+        "Sleep hours are calculated automatically from the two logged times",
+        "Logging sleep start awards 5 XP; logging wake-up awards 5 XP",
+        "Achieving 7+ hours of sleep awards an additional 15 XP"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-011"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-016",
+      "title": "Daily Habit Checklist — Food Habits",
+      "description": "As a user, I want to log my daily food habits via simple checkboxes so that I can build better eating patterns.",
+      "acceptanceCriteria": [
+        "Checklist includes: 'Ate 2 servings of vegetables' (10 XP), 'Skipped junk food today' (10 XP), 'Ate breakfast' (5 XP)",
+        "All food habit items are honour-system checkboxes (no verification required)",
+        "XP is awarded immediately upon checking each item",
+        "Items are visually marked as complete when checked"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-011"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-017",
+      "title": "Daily Checklist Midnight Reset",
+      "description": "As a user, I want my daily checklist to reset at midnight in my local timezone so that I get a fresh start each day.",
+      "acceptanceCriteria": [
+        "Checklist resets daily at midnight in the user's local timezone",
+        "Previous day's log is preserved for history and streak evaluation",
+        "A new empty daily_log record is created for the new day",
+        "User's timezone is captured during onboarding/account setup"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-012",
+        "US-013",
+        "US-014",
+        "US-015",
+        "US-016"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-018",
+      "title": "Offline Resilience — Local Caching",
+      "description": "As a user, I want my checklist progress to be preserved if I lose internet mid-session so that I don't lose my logged habits.",
+      "acceptanceCriteria": [
+        "Checklist state is cached in localStorage during active logging",
+        "On reconnection, cached state is synced to the server automatically",
+        "Duplicate habit log submissions are idempotent (second submission returns 200 with existing record)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-012",
+        "US-013",
+        "US-014",
+        "US-015",
+        "US-016"
+      ]
+    },
+    {
+      "id": "US-019",
+      "title": "XP System and Level Tracking",
+      "description": "As a user, I want to earn XP for completing habits and level up over time so that I feel rewarded for my consistent effort.",
+      "acceptanceCriteria": [
+        "XP is awarded per completed task immediately upon completion",
+        "Total XP is stored and displayed on the dashboard and profile",
+        "Level thresholds: Level 1 = 0 XP, Level 2 = 500 XP, Level 3 = 1,200 XP (each subsequent level requires ~20% more XP)",
+        "Level-up triggers an in-app animation immediately when the XP threshold is crossed",
+        "Maximum XP earnable per day is ~150 XP"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-012",
+        "US-013",
+        "US-014",
+        "US-015",
+        "US-016"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-020",
+      "title": "Streak System",
+      "description": "As a user, I want to maintain a daily habit streak so that I am motivated to complete at least 3 habit categories every day.",
+      "acceptanceCriteria": [
+        "A streak is maintained if the user completes ≥ 3 of 5 habit categories each day",
+        "Streak counter increments at end-of-day reset if the condition is met",
+        "Streak resets to 0 if fewer than 3 categories are completed and no shield is available",
+        "Current streak and longest streak are stored on the user record",
+        "Streak counter is visible on the dashboard"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-017"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-021",
+      "title": "Streak Shield Mechanism",
+      "description": "As a user, I want to earn streak shields for long streaks so that a single missed day doesn't erase my progress.",
+      "acceptanceCriteria": [
+        "User earns 1 streak shield for every 7-day streak completed",
+        "Maximum of 1 shield can be held in reserve at any time",
+        "Shield auto-activates on the first missed day (< 3 categories) to preserve the streak",
+        "Shield count decrements by 1 when activated",
+        "Shield count and status are visible on the dashboard"
+      ],
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-020"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-022",
+      "title": "Mascot Evolution",
+      "description": "As a user, I want my mascot to evolve when I reach Level 5 and Level 10 so that I feel a strong sense of progression.",
+      "acceptanceCriteria": [
+        "Mascot evolves to the Level 5 form when the user reaches Level 5 (e.g., Baby Flamingo → Flamingo)",
+        "Mascot evolves to the Level 10 form when the user reaches Level 10 (e.g., Flamingo → Dancing Flamingo)",
+        "Evolution triggers a CSS animation on the dashboard",
+        "Each BMI category has a unique 3-stage mascot progression as defined in the PRD",
+        "Level 5 evolution awards a badge; Level 10 evolution awards a 'Champion' profile badge"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-019",
+        "US-007"
+      ]
+    },
+    {
+      "id": "US-023",
+      "title": "Mascot Customisation",
+      "description": "As a user, I want to give my mascot a custom name so that I feel a personal connection to my companion.",
+      "acceptanceCriteria": [
+        "User can set or update their mascot's name from the profile or dashboard",
+        "Mascot name is displayed alongside the mascot on the dashboard",
+        "Name is saved to the users table (mascot_name field)",
+        "No character restrictions beyond a reasonable length limit (50 chars max)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-007"
+      ]
+    },
+    {
+      "id": "US-024",
+      "title": "Milestone Rewards",
+      "description": "As a user, I want to unlock cosmetic rewards at streak and level milestones so that long-term effort is visibly celebrated.",
+      "acceptanceCriteria": [
+        "7-day streak unlocks a mascot accessory (hat)",
+        "30-day streak unlocks a mascot background theme",
+        "Level 5 triggers mascot evolution and awards a badge",
+        "Level 10 triggers mascot evolution and awards a 'Champion' profile badge",
+        "First team challenge win displays a team trophy on the user's profile",
+        "Rewards are displayed on the user profile page"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-020",
+        "US-022"
+      ]
+    },
+    {
+      "id": "US-025",
+      "title": "User Profile Page",
+      "description": "As a user, I want a profile page that shows my level, badges, mascot, and streak history so that I can review my overall progress.",
+      "acceptanceCriteria": [
+        "Profile page displays: current level, total XP, current streak, longest streak, all earned badges",
+        "Mascot and its current evolution stage are shown",
+        "Team trophies from won challenges are displayed",
+        "Profile is visible to the logged-in user"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-019",
+        "US-020",
+        "US-007"
+      ]
+    },
+    {
+      "id": "US-026",
+      "title": "Daily Reset Cron Job",
+      "description": "As a system, I need a scheduled job that evaluates each user's previous day and resets the checklist at midnight in their timezone.",
+      "acceptanceCriteria": [
+        "Job runs at 00:01 AM UTC and processes users where it is midnight in their timezone",
+        "If categories_done >= 3: increment current_streak, update longest_streak, award shield if streak % 7 == 0 and shields < 2",
+        "If categories_done < 3 and shield available: decrement shield, preserve streak",
+        "If categories_done < 3 and no shield: reset current_streak to 0",
+        "A new empty daily_log record is created for the user for the new day"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-017",
+        "US-021"
+      ]
+    },
+    {
+      "id": "US-027",
+      "title": "Google Fit Step Sync",
+      "description": "As an Android Chrome user, I want to sync my step data from Google Fit so that I don't have to manually enter my steps every day.",
+      "acceptanceCriteria": [
+        "User can connect their Google Fit account via OAuth 2.0",
+        "Steps are pulled from Google Fit API and displayed in the steps habit card",
+        "If both Google Fit and manual entries exist, the higher value is used",
+        "Manual entry remains available as a fallback",
+        "iPhone users use manual step entry (Apple Health web API not supported in MVP)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-012"
+      ]
+    },
+    {
+      "id": "US-028",
+      "title": "Team Creation",
+      "description": "As a user, I want to create a team with a unique invite code so that I can invite others to join my health challenge group.",
+      "acceptanceCriteria": [
+        "User can create a team with a name and optional description",
+        "System generates a unique 6-character alphanumeric invite code",
+        "Team creator is automatically assigned as admin",
+        "Team size is limited to 2–20 members",
+        "Team is visible in the user's team list immediately after creation"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-010"
+      ]
+    },
+    {
+      "id": "US-029",
+      "title": "Join Team via Invite Code",
+      "description": "As a user, I want to join a team using a 6-character invite code so that I can participate in group health challenges.",
+      "acceptanceCriteria": [
+        "User can enter a 6-character invite code to join a team",
+        "Invalid or expired codes show a clear error message",
+        "User cannot join a team that is already at maximum capacity (20 members)",
+        "User can be a member of up to 3 teams simultaneously",
+        "Attempting to join a 4th team is rejected with a clear message"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-028"
+      ]
+    },
+    {
+      "id": "US-030",
+      "title": "Team Challenge Management",
+      "description": "As a team admin, I want to start challenges from a preset list so that my team has a structured competitive goal.",
+      "acceptanceCriteria": [
+        "Admin can initiate a challenge from the preset list: Most Steps This Week (7 days), Hydration Champion (7 days), Perfect Week (7 days), Longest Streak (30 days)",
+        "Only one challenge can be active per team at a time",
+        "Challenge start and end notifications are sent to all team members",
+        "Admin can remove members from the team",
+        "If admin leaves the team, the oldest member is automatically promoted to admin"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-028"
+      ]
+    },
+    {
+      "id": "US-031",
+      "title": "Team Challenge Leaderboard",
+      "description": "As a team member, I want to see a real-time leaderboard for active challenges so that I can track my rank against teammates.",
+      "acceptanceCriteria": [
+        "Leaderboard shows all team members ranked by the active challenge metric",
+        "Leaderboard updates every 5 minutes via polling",
+        "Win condition is evaluated at challenge end date (highest metric wins)",
+        "Ties result in co-winners; both receive the challenge badge",
+        "Completed challenges are archived and viewable in challenge history"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-030"
+      ]
+    },
+    {
+      "id": "US-032",
+      "title": "Daily Reminder Notification",
+      "description": "As a user, I want to receive a daily reminder notification at my preferred time so that I don't forget to complete my habits.",
+      "acceptanceCriteria": [
+        "Daily reminder is sent via web push or email at a user-configured time (default 8:00 AM local)",
+        "User can change the reminder time in notification settings",
+        "User can disable this notification type entirely"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-010"
+      ]
+    },
+    {
+      "id": "US-033",
+      "title": "Streak At-Risk Alert",
+      "description": "As a user, I want to receive an alert at 8 PM if I haven't completed at least 3 habit categories so that I have a chance to save my streak.",
+      "acceptanceCriteria": [
+        "If categories_done < 3 by 8:00 PM local time, a web push notification is sent",
+        "Alert message is motivational and not alarming",
+        "User can disable this notification type in settings"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-032"
+      ]
+    },
+    {
+      "id": "US-034",
+      "title": "Monthly BMI Update Reminder",
+      "description": "As a user, I want a monthly reminder to update my BMI so that my goals and mascot reflect my current progress.",
+      "acceptanceCriteria": [
+        "Reminder is sent via email on the same day of the month as the user's sign-up date",
+        "Email arrives at 9 AM local time",
+        "User can update their height/weight from the profile or via a direct link in the email",
+        "BMI and mascot are recalculated on update; mascot evolution is checked against new level",
+        "User can disable this notification in settings"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-006"
+      ]
+    },
+    {
+      "id": "US-035",
+      "title": "Team and Leaderboard Notifications",
+      "description": "As a user, I want push notifications for team challenge events so that I stay engaged with my team's competition.",
+      "acceptanceCriteria": [
+        "Notification sent when a team challenge starts (web push + in-app)",
+        "Notification sent when a team challenge ends (web push + in-app)",
+        "Notification sent within 5 minutes when a teammate overtakes the user's rank in an active challenge",
+        "User can disable team notifications in settings"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-031"
+      ]
+    },
+    {
+      "id": "US-036",
+      "title": "Notification Preferences Management",
+      "description": "As a user, I want to configure or disable each type of notification so that I only receive alerts I find useful.",
+      "acceptanceCriteria": [
+        "User can set their daily reminder time",
+        "User can toggle on/off: daily reminder, streak at-risk alert, BMI reminder, team updates",
+        "Changes to preferences take effect immediately",
+        "Preferences are stored in notifications_config table"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-032",
+        "US-033",
+        "US-034",
+        "US-035"
+      ]
+    },
+    {
+      "id": "US-037",
+      "title": "Dashboard Ad Banner",
+      "description": "As a product, I need a non-intrusive ad banner on the dashboard so that the app can generate ad revenue.",
+      "acceptanceCriteria": [
+        "Google AdSense banner is displayed at the bottom of the dashboard page",
+        "Banner is non-intrusive and does not overlap content",
+        "No ads are displayed during active habit logging",
+        "Ad is silently suppressed if an ad blocker is active (no app functionality is blocked)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-011"
+      ]
+    },
+    {
+      "id": "US-038",
+      "title": "Session Interstitial Ad",
+      "description": "As a product, I need an interstitial ad shown once per session on app open so that revenue is generated from each visit.",
+      "acceptanceCriteria": [
+        "Interstitial ad is displayed once per session on app open",
+        "Ad is skippable after 5 seconds",
+        "No interstitial is shown during active habit logging",
+        "Ad is silently suppressed if ad blocker is active"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-037"
+      ]
+    },
+    {
+      "id": "US-039",
+      "title": "Database Schema Implementation",
+      "description": "As a developer, I need all core database tables implemented so that the application has a persistent data layer.",
+      "acceptanceCriteria": [
+        "Tables created: users, daily_logs, habits_config, mascots, teams, team_members, team_challenges, challenge_entries, notifications_config",
+        "All foreign key relationships and constraints are enforced",
+        "UNIQUE constraint on (user_id, log_date) in daily_logs prevents duplicate daily records",
+        "UNIQUE constraint on invite_code in teams",
+        "All UUID primary keys generated server-side"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-040",
+      "title": "REST API Endpoints",
+      "description": "As a developer, I need all core REST API endpoints implemented so that the frontend can communicate with the backend.",
+      "acceptanceCriteria": [
+        "Auth endpoints: POST /api/auth/register, /login, /logout, /verify-email, /reset-password",
+        "User endpoints: GET /api/users/me, PATCH /api/users/me, PATCH /api/users/me/bmi",
+        "Habit endpoints: GET /api/habits/today, PATCH /api/habits/today/:category",
+        "Team endpoints: GET/POST /api/teams, POST /api/teams/join, GET /api/teams/:id/leaderboard, POST/GET /api/teams/:id/challenges/:challengeId",
+        "Stats endpoints: GET /api/users/me/stats, GET /api/users/me/streaks",
+        "All endpoints require authentication except register and login",
+        "API returns appropriate HTTP status codes and error messages"
+      ],
+      "priority": 1,
+      "passes": true,
+      "dependsOn": [
+        "US-039"
+      ],
+      "completionNotes": "Completed by agent"
+    },
+    {
+      "id": "US-041",
+      "title": "Analytics Event Tracking",
+      "description": "As a product team, I want key user events tracked so that we can measure engagement, retention, and revenue KPIs.",
+      "acceptanceCriteria": [
+        "Events tracked: user_registered, onboarding_completed, onboarding_dropped, habit_logged, daily_checklist_completed, streak_updated, streak_broken, level_up, team_created, team_joined, challenge_started, challenge_completed, ad_impression, ad_clicked, notification_sent, notification_opened",
+        "Each event includes the properties defined in the analytics tracking plan",
+        "Events are sent server-side to prevent ad-blocker interference where possible",
+        "Analytics dashboards for Retention, Habit Completion Funnel, Gamification Health, Team Engagement, and Ad Revenue are buildable from tracked events"
+      ],
+      "priority": 3,
+      "passes": false,
+      "dependsOn": [
+        "US-040"
+      ]
+    },
+    {
+      "id": "US-042",
+      "title": "Non-Functional Requirements — Performance and Security",
+      "description": "As a product, I need the application to meet performance, security, and accessibility standards so that it is reliable and trustworthy for all users.",
+      "acceptanceCriteria": [
+        "Page load time is < 2.5 seconds on a 4G connection",
+        "Monthly uptime is ≥ 99.5%",
+        "Architecture supports 100K concurrent users without redesign",
+        "Passwords hashed with bcrypt cost factor 12; HTTPS enforced everywhere",
+        "GDPR compliance: explicit consent, data export, and account deletion available",
+        "Fully functional on Chrome 100+, Firefox 100+, Safari 15+, Edge 100+",
+        "Responsive design functional at 375px minimum width",
+        "WCAG 2.1 AA compliance for core user flows",
+        "i18n-ready architecture (English only in MVP)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "dependsOn": [
+        "US-040"
+      ]
+    }
+  ],
+  "metadata": {
+    "updatedAt": "2026-02-22T18:25:57.725Z"
+  }
+}

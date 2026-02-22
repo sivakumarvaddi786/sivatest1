@@ -1,0 +1,76 @@
+# Iteration 7 Log
+
+## Metadata
+
+- **Task ID**: US-021
+- **Task Title**: Streak Shield Mechanism
+- **Description**: As a user, I want to earn streak shields for long streaks so that a single missed day doesn't erase my progress.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T18:22:41.853Z
+- **Ended At**: 2026-02-22T18:24:32.695Z
+- **Duration**: 1m 50s
+- **Input Tokens**: 61
+- **Output Tokens**: 4641
+- **Total Tokens**: 4702
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current state of the project before implementing US-021.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m pattern: [96msrc/**/*.{js,ts,tsx}[0m
+Good, I can see US-020 (the prerequisite) is already implemented. Let me read the key files to understand the current streak and shield implementation.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\utils\streak.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+Now I have a clear picture. Let me analyze what's already in place:
+
+- `streak_shields` column already exists on `users` (line 39, db/index.js)
+- Shield consumption on missed day already works in `evaluateStreakIfNeeded()` (streak.js lines 117-119)
+- What's **missing**: shield earning (every 7-day streak), max cap of 1, and dashboard visibility
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+Now let me add the shield earning logic. When the streak increments and hits a multiple of 7, the user earns a shield (max 1).
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\utils\streak.js[0m edit: "const STREAK_THRESHOLD = 3;" → "const STREAK_THRESHOLD = 3;
+const SHIELD_STREAK_IN..."
+Now update the evaluation loop to award shields when streak completes a 7-day interval:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\utils\streak.js[0m edit: "    if (completed >= STREAK_THRESHOLD) {
+      cur..." → "    if (completed >= STREAK_THRESHOLD) {
+      cur..."
+[94m[TodoWrite][0m
+Now add `streak_shields` to the dashboard response:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "    "SELECT name, mascot_id, mascot_name, current_..." → "    "SELECT name, mascot_id, mascot_name, current_..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "    streak: {
+      current: user.current_streak,
+..." → "    streak: {
+      current: user.current_streak,
+..."
+Now let me also check the users streaks endpoint to ensure shields are visible there too.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\users.js[0m
+The users endpoints already include `streak_shields` in their responses (`/me`, `/me/stats`, `/me/streaks`). The dashboard was the only place missing it.
+[94m[TodoWrite][0m
+[94m[Bash][0m Lint changed files $ cd /c/Users/sivak/rtest && npx eslint src/utils/streak.js src/routes/dashboard.js 2>&1
+Lint passes clean. Let me verify the final state of the changed files:
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\utils\streak.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\utils\streak.js[0m
+[94m[TodoWrite][0m
+Now let me update progress.md:
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - First-time evaluation (no `streak_last_evaluat..." → "  - First-time evaluation (no `streak_last_evaluat..."
+[94m[TodoWrite][0m
+Let me verify all acceptance criteria are met:
+
+- **User earns 1 streak shield for every 7-day streak completed** — `streak.js:120`: when `currentStreak % 7 === 0` after increment, shield is awarded
+- **Maximum of 1 shield can be held in reserve at any time** — `streak.js:120`: guarded by `shields < MAX_SHIELDS` (MAX_SHIELDS = 1)
+- **Shield auto-activates on the first missed day (< 3 categories) to preserve the streak** — `streak.js:123-125`: already implemented in US-020, `shields--` when `completed < STREAK_THRESHOLD`
+- **Shield count decrements by 1 when activated** — `streak.js:124`: `shields--`
+- **Shield count and status are visible on the dashboard** — `dashboard.js`: `streak.shields` in response; also visible via `/api/users/me`, `/api/users/me/stats`, `/api/users/me/streaks`
+
+All acceptance criteria are satisfied.
+
+<promise>COMPLETE</promise>

@@ -1,0 +1,71 @@
+# Iteration 3 Log
+
+## Metadata
+
+- **Task ID**: US-003
+- **Task Title**: Password Reset via Email
+- **Description**: As a user who forgot my password, I want to reset it via a secure email link so that I can regain access to my account.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:10:07.006Z
+- **Ended At**: 2026-02-22T14:12:01.612Z
+- **Duration**: 1m 54s
+- **Input Tokens**: 59
+- **Output Tokens**: 7031
+- **Total Tokens**: 7090
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\.claude\projects\C--Users-sivak-rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Glob][0m [95mC:\Users\sivak\rtest[0m pattern: [96m**/*[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\services\email.js[0m
+[94m[Glob][0m [95mC:\Users\sivak\rtest[0m pattern: [96msrc/**/*.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\package.json[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireEmailVerified.js[0m
+Now I have a clear understanding of the codebase. I need to implement:
+1. A `password_resets` table in the DB schema
+2. `sendPasswordResetEmail()` in the email service
+3. `POST /api/auth/forgot-password` and `POST /api/auth/reset-password` routes
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "  CREATE TABLE IF NOT EXISTS email_verifications (..." → "  CREATE TABLE IF NOT EXISTS email_verifications (..."
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\services\email.js[0m edit: "  if (process.env.NODE_ENV !== "production") {
+   ..." → "  if (process.env.NODE_ENV !== "production") {
+   ..."
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m edit: "import { sendVerificationEmail } from "../services..." → "import { sendVerificationEmail, sendPasswordResetE..."
+Now add the two new routes before `export default router;`:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m edit: "export default router;" → "/**
+ * POST /api/auth/forgot-password
+ *
+ * Initia..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on src/ $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+Lint passes clean. Let me verify the final state of the changed files:
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - `GET` verb used for verify-email since it is a..." → "  - `GET` verb used for verify-email since it is a..."
+[94m[TodoWrite][0m
+All acceptance criteria are met:
+
+- **Request password reset** — `POST /api/auth/forgot-password` accepts an email and initiates the flow
+- **Reset email sent** — `sendPasswordResetEmail()` sends a styled email with the reset link; non-blocking via `.catch()`
+- **Expires after 1 hour** — token `expires_at` is set to `Date.now() + 60 * 60 * 1000`
+- **Expired/used links show clear error** — distinct 400 responses: "already been used" vs "has expired" vs "invalid"
+- **Successful reset allows login with new password** — `POST /api/auth/reset-password` hashes the new password and atomically updates `users.password_hash` + marks the token used in a DB transaction
+
+Lint passes cleanly. No new dependencies required.
+
+<promise>COMPLETE</promise>

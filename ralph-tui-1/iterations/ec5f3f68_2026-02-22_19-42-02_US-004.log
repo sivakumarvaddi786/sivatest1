@@ -1,0 +1,85 @@
+# Iteration 4 Log
+
+## Metadata
+
+- **Task ID**: US-004
+- **Task Title**: Session Management
+- **Description**: As a logged-in user, I want my session to be maintained securely so that I am not forced to log in repeatedly.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:12:02.736Z
+- **Ended At**: 2026-02-22T14:14:21.098Z
+- **Duration**: 2m 18s
+- **Input Tokens**: 59
+- **Output Tokens**: 8841
+- **Total Tokens**: 8900
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Glob][0m [95mC:\Users\sivak\rtest[0m pattern: [96msrc/**/*.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireEmailVerified.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\package.json[0m
+Now I have a full picture. Let me implement US-004 (Session Management) with:
+1. `sessions` table in DB
+2. `POST /api/auth/login` route
+3. `POST /api/auth/logout` route  
+4. `requireAuth` middleware (Bearer token, sliding 30-day expiry)
+5. Wire `requireAuth` into the dashboard
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "  CREATE TABLE IF NOT EXISTS password_resets (
+   ..." → "  CREATE TABLE IF NOT EXISTS password_resets (
+   ..."
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\middleware\requireAuth.js[0m "import db from "../db/index.js";
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Middleware: requires a valid session token in the Authorization header.
+ *
+ * Expects: Authorization: Bearer ... (1826 chars)"
+[94m[TodoWrite][0m
+Now add the login and logout routes to `auth.js`:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m edit: "import { Router } from "express";
+import { body, v..." → "import { Router } from "express";
+import { body, v..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m edit: "export default router;" → "const loginValidation = [
+  body("email")
+    .tri..."
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "import { Router } from "express";
+import { require..." → "import { Router } from "express";
+import { require..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on src/ $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+Clean. Now update the progress log:
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - No new npm packages needed — uuid, bcryptjs, e..." → "  - No new npm packages needed — uuid, bcryptjs, e..."
+[94m[TodoWrite][0m
+All acceptance criteria are met:
+
+| AC | Implementation |
+|---|---|
+| Session token issued on successful login | `POST /api/auth/login` creates a UUID token in `sessions` table and returns `{ token, expiresAt }` |
+| Session expires after 30 days of inactivity | `requireAuth` slides `expires_at = now + 30d` on every authenticated request |
+| User redirected to login when session expires | `requireAuth` returns `401 { error: "Session expired. Please log in again." }` |
+| User can log out, invalidating the token | `POST /api/auth/logout` deletes the session row from DB |
+
+**Files changed:**
+- `src/db/index.js` — `sessions` table added
+- `src/middleware/requireAuth.js` — new Bearer token middleware
+- `src/routes/auth.js` — `POST /api/auth/login` + `POST /api/auth/logout`
+- `src/routes/dashboard.js` — `requireAuth` wired in before `requireEmailVerified`
+
+<promise>COMPLETE</promise>

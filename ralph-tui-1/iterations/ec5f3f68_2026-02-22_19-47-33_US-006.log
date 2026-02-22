@@ -1,0 +1,68 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: US-006
+- **Task Title**: Onboarding Step 2 — Height, Weight, BMI Calculation
+- **Description**: As a new user, I want to enter my height and weight so that the app can calculate my BMI and assign appropriate goals.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:17:33.609Z
+- **Ended At**: 2026-02-22T14:20:02.389Z
+- **Duration**: 2m 28s
+- **Input Tokens**: 4321
+- **Output Tokens**: 9220
+- **Total Tokens**: 13541
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\.claude\projects\C--Users-sivak-rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Bash][0m $ ls /c/Users/sivak/rtest/.ralph-tui/ 2>/dev/null && cat /c/Users/sivak/rtest/.ralph-tui/progress.md
+[94m[Bash][0m $ ls /c/Users/sivak/rtest/src/ 2>/dev/null
+[94m[Bash][0m $ ls /c/Users/sivak/rtest/src/routes/ && ls /c/Users/sivak/rtest/src/middleware/ && ls /c/Users/sivak/...
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireOnboardingComplete.js[0m
+Now I have a clear picture. Let me implement US-006 — adding step 2 (height, weight, BMI) to the onboarding flow.
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m edit: "import { Router } from "express";
+import { body, v..." → "import { Router } from "express";
+import { body, v..."
+[94m[TodoWrite][0m
+Now add the step2 route to the end of onboarding.js:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m edit: "export default router;" → "const step2Validation = [
+  body("height_cm")
+    ..."
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\middleware\requireOnboardingComplete.js[0m edit: "const TOTAL_ONBOARDING_STEPS = 1;" → "const TOTAL_ONBOARDING_STEPS = 2;"
+[94m[TodoWrite][0m
+The `height_cm`, `weight_kg`, `bmi`, and `bmi_category` columns are already in the `CREATE TABLE IF NOT EXISTS` from US-001. No new migrations needed.
+[94m[TodoWrite][0m
+[94m[Bash][0m $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+[94m[Bash][0m $ cd /c/Users/sivak/rtest && node --check src/routes/onboarding.js && node --check src/middleware/requ...
+All clean. Let me do a final review of the complete onboarding.js:
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m
+Good. Now update progress.md:
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Bash][0m $ use `.bail()` before the custom check to skip it if the primary field already failed   - BMI rounded...
+[94m[TodoWrite][0m
+All acceptance criteria are met:
+
+- **Height in cm, weight in kg** — `isFloat({ min: 50, max: 300 })` / `isFloat({ min: 10, max: 500 })`
+- **BMI formula** — `weight_kg / (height_cm/100)²`, rounded to 1 dp
+- **Motivational label returned** — `bmiLabel` in the response (e.g. "Let's get moving"), never 'obese'
+- **'obese' never shown** — internal DB values `obese_1`/`obese_2` stay server-side; users see "Every step counts" / "You've got this"
+- **BMI < 10 or > 60 rejected** — cross-field `.custom()` validator on `weight_kg` throws a 400 error
+- **Progress saved** — `UPDATE users SET height_cm, weight_kg, bmi, bmi_category, onboarding_step = MAX(onboarding_step, 2)`
+- **`TOTAL_ONBOARDING_STEPS` bumped to 2** — dashboard is now gated behind both onboarding steps
+
+<promise>COMPLETE</promise>

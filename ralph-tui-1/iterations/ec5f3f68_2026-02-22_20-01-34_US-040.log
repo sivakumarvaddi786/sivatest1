@@ -1,0 +1,98 @@
+# Iteration 12 Log
+
+## Metadata
+
+- **Task ID**: US-040
+- **Task Title**: REST API Endpoints
+- **Description**: As a developer, I need all core REST API endpoints implemented so that the frontend can communicate with the backend.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:31:34.191Z
+- **Ended At**: 2026-02-22T14:37:02.802Z
+- **Duration**: 5m 28s
+- **Input Tokens**: 69
+- **Output Tokens**: 24369
+- **Total Tokens**: 24438
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m [95mC:\Users\sivak\rtest[0m pattern: [96msrc/**/*.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\auth.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireAuth.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+Now I have a clear picture of the codebase. Let me check what's already there and plan the implementation.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\middleware\requireEmailVerified.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\onboarding.js[0m
+Good, I have a full picture. Now let me set up todos and implement everything.
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\routes\users.js[0m "import { Router } from "express";
+import { body, validationResult } from "express-validator";
+import db from "../db/index.js";
+import { requireAuth } from "../middleware/requireAuth.js";
+
+const router... (5754 chars)"
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m "import { Router } from "express";
+import { body, param, validationResult } from "express-validator";
+import { v4 as uuidv4 } from "uuid";
+import db from "../db/index.js";
+import { requireAuth } from "... (4426 chars)"
+[94m[TodoWrite][0m
+[94m[Write][0m [95mC:\Users\sivak\rtest\src\routes\teams.js[0m "import { Router } from "express";
+import { body, validationResult } from "express-validator";
+import { v4 as uuidv4 } from "uuid";
+import db from "../db/index.js";
+import { requireAuth } from "../midd... (7389 chars)"
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\index.js[0m edit: "import authRouter from "./routes/auth.js";
+import ..." → "import authRouter from "./routes/auth.js";
+import ..."
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\index.js[0m edit: "// Mount routes
+app.use("/api/auth", authRouter);
+..." → "// Mount routes
+app.use("/api/auth", authRouter);
+..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on the project $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+Clean. Let me also verify the server starts without errors:
+[94m[Bash][0m Start server briefly to verify no import/startup errors $ cd /c/Users/sivak/rtest && timeout 5 node src/index.js 2>&1 || true
+Server starts cleanly. Let me verify the final `index.js` looks correct:
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - All new tables placed within the single `db.ex..." → "  - All new tables placed within the single `db.ex..."
+[94m[TodoWrite][0m
+All acceptance criteria are satisfied:
+
+**Auth endpoints** (already existed, US-001 through US-004):
+- `POST /api/auth/register`, `/login`, `/logout`, `/reset-password`, `GET /api/auth/verify-email`
+
+**User endpoints** (`src/routes/users.js`):
+- `GET /api/users/me` — profile
+- `PATCH /api/users/me` — update name/age/gender/timezone
+- `PATCH /api/users/me/bmi` — update height/weight, recalculates BMI
+- `GET /api/users/me/stats` — xp, level, streaks, days logged
+- `GET /api/users/me/streaks` — streak details + recent activity dates
+
+**Habit endpoints** (`src/routes/habits.js`):
+- `GET /api/habits/today` — today's log + goals from habits_config
+- `PATCH /api/habits/today/:category` — upserts a category value (steps/hydration/sleep/movement/vegetables)
+
+**Team endpoints** (`src/routes/teams.js`):
+- `GET /api/teams` — user's teams
+- `POST /api/teams` — create team
+- `POST /api/teams/join` — join via invite code
+- `GET /api/teams/:id/leaderboard` — sorted by XP
+- `GET /api/teams/:id/challenges/:challengeId` — challenge details + entries
+- `POST /api/teams/:id/challenges/:challengeId` — submit challenge progress entry
+
+All endpoints require `requireAuth`; register and login are unprotected. Lint passes, server starts clean.
+
+<promise>COMPLETE</promise>

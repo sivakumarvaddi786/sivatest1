@@ -1,0 +1,71 @@
+# Iteration 13 Log
+
+## Metadata
+
+- **Task ID**: US-011
+- **Task Title**: Dashboard Home Screen
+- **Description**: As an onboarded user, I want a dashboard home screen showing my mascot, today's checklist, and my streak so that I get a clear daily overview.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:37:03.899Z
+- **Ended At**: 2026-02-22T14:38:21.136Z
+- **Duration**: 1m 17s
+- **Input Tokens**: 43
+- **Output Tokens**: 4447
+- **Total Tokens**: 4490
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\.claude\projects\C--Users-sivak-rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Bash][0m $ find /c/Users/sivak/rtest -type f | head -50 2>/dev/null || ls /c/Users/sivak/rtest/
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+Now let me look at the current dashboard and related files to understand the existing implementation.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\index.js[0m
+Let me also check the habits route and DB schema to understand what today's checklist endpoint looks like.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+Now I have a full picture. Let me analyze the acceptance criteria against the existing dashboard:
+
+1. **Mascot prominently displayed** - ✅ Already in the response (`mascot: { id, name, mood }`)
+2. **Current streak count visible** - ✅ Already in the response (`streak: { current, longest }`)
+3. **Today's habit checklist accessible** - ❌ Not included in dashboard response yet
+4. **XP total and current level displayed** - ✅ Already in the response (`xpTotal`, `level`)
+5. **Ad banner at bottom (non-intrusive)** - ❌ Not included yet
+
+I need to add `todayChecklist` and `adBanner` fields to the dashboard response.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "/**
+ * GET /api/dashboard
+ *
+ * Returns dashboard ..." → "/**
+ * GET /api/dashboard
+ *
+ * Returns dashboard ..."
+Now let me verify the final file looks correct:
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+Now run the linter to verify no issues:
+[94m[Bash][0m Lint the updated dashboard route $ cd /c/Users/sivak/rtest && node_modules/.bin/eslint src/routes/dashboard.js
+Clean. Now append the progress entry:
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - Auth endpoints (register, login, verify-email,..." → "  - Auth endpoints (register, login, verify-email,..."
+All acceptance criteria are now satisfied:
+
+| AC | Status | Implementation |
+|---|---|---|
+| Dashboard displays mascot prominently | ✅ | `mascot: { id, name, mood }` (from US-007) |
+| Current streak count visible | ✅ | `streak: { current, longest, mood }` (from US-007) |
+| Today's habit checklist accessible | ✅ | `todayChecklist: { date, goals, progress }` — added now |
+| XP total and current level displayed | ✅ | `xpTotal`, `level` (from US-007) |
+| Ad banner at bottom (non-intrusive) | ✅ | `adBanner: { enabled: true, placement: "bottom" }` — added now |
+
+The change was minimal: 2 new DB queries and 2 new fields added to `src/routes/dashboard.js`. Lint passes cleanly.
+
+<promise>COMPLETE</promise>

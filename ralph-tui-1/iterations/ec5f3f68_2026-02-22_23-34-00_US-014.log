@@ -1,0 +1,78 @@
+# Iteration 1 Log
+
+## Metadata
+
+- **Task ID**: US-014
+- **Task Title**: Daily Habit Checklist — Hydration
+- **Description**: As a user, I want to log each glass of water I drink so that I can track whether I hit my daily hydration target.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T18:04:00.608Z
+- **Ended At**: 2026-02-22T18:06:31.475Z
+- **Duration**: 2m 30s
+- **Input Tokens**: 62
+- **Output Tokens**: 7420
+- **Total Tokens**: 7482
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current state of the codebase before implementing US-014.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m pattern: [96msrc/**/*.js[0m
+Let me read the key files needed for this implementation.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+Now I have a clear picture. Let me implement US-014: Daily Habit Checklist — Hydration.
+[94m[TodoWrite][0m
+[94m[TodoWrite][0m
+Add migration columns for hydration XP tracking:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "// Migration: add movement XP tracking column to d..." → "// Migration: add movement XP tracking column to d..."
+[94m[TodoWrite][0m
+Now add the hydration handler and wire it into the PATCH route:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "// US-013: movement routine constants
+const MOVEME..." → "// US-013: movement routine constants
+const MOVEME..."
+Now add the hydration branch in the PATCH handler (after the movement branch):
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    // Movement has dedicated logic (XP award on c..." → "    // Movement has dedicated logic (XP award on c..."
+Now add the `handleHydrationUpdate` function before `handleStepsUpdate`:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "/**
+ * Handles step updates with source tracking, ..." → "/**
+ * Handles hydration updates with per-glass 5 ..."
+[94m[TodoWrite][0m
+Now update the dashboard to show hydration progress vs target. The dashboard already shows `hydration` in the progress and `hydration_glasses` in goals — let me check if there's anything extra needed for the "progress is shown as current glasses vs target glasses" AC.
+
+Looking at the dashboard response, `todayChecklist.goals.hydration_glasses` is the target and `todayChecklist.progress.hydration` is the current. This already satisfies the AC for displaying progress as current vs target. The client can render "X of Y glasses" from these fields.
+
+However, to make the hydration data more explicit and self-contained in the dashboard response, I'll add a dedicated `hydration` summary object:
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "    todayChecklist: {
+      date: today,
+      goa..." → "    todayChecklist: {
+      date: today,
+      goa..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on changed files $ cd /c/Users/sivak/rtest && npx eslint src/routes/habits.js src/routes/dashboard.js src/db/index.js 2...
+Lint passes clean. Let me also verify the full app can load without errors:
+[94m[Bash][0m Verify DB initialization works $ cd /c/Users/sivak/rtest && node -e "import('./src/db/index.js').then(() => console.log('DB init OK')...
+[94m[Bash][0m Verify habits route loads $ cd /c/Users/sivak/rtest && node -e "import('./src/routes/habits.js').then(() => console.log('Habits ...
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - Dashboard can import named exports from route ..." → "  - Dashboard can import named exports from route ..."
+[94m[TodoWrite][0m
+US-014 implementation is complete. Here's a summary of what was done:
+
+**AC coverage:**
+- **User can tap to log each glass of water** — `PATCH /api/habits/today/hydration` with `{ value: N }` updates the hydration count via `handleHydrationUpdate()`
+- **Daily water target is displayed** — Dashboard returns `todayChecklist.hydration.target` (from `habits_config.hydration_glasses`, calculated at onboarding) and `todayChecklist.goals.hydration_glasses`
+- **Each glass logged awards 5 XP** — `hydration_xp_glasses` tracks the high-water mark; XP delta = `(newGlasses - prevXpGlasses) * 5` for net-new glasses only
+- **Hitting the full daily target awards additional 20 XP** — `hydration_goal_xp_awarded` flag ensures the 20 XP bonus is awarded exactly once per day
+- **Progress shown as current vs target** — Dashboard returns `todayChecklist.hydration: { current, target, goalMet }`, and the habits endpoint returns `{ hydrationGoal, currentGlasses, goalMet }`
+
+**Files changed:** `src/db/index.js`, `src/routes/habits.js`, `src/routes/dashboard.js`
+
+<promise>COMPLETE</promise>

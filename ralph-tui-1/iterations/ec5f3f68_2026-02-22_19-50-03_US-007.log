@@ -1,0 +1,88 @@
+# Iteration 7 Log
+
+## Metadata
+
+- **Task ID**: US-007
+- **Task Title**: BMI-Based Mascot Assignment
+- **Description**: As a new user, I want to be assigned a starter mascot based on my BMI category so that I have a personalised companion for my health journey.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:20:03.554Z
+- **Ended At**: 2026-02-22T14:22:13.580Z
+- **Duration**: 2m 10s
+- **Input Tokens**: 55
+- **Output Tokens**: 8454
+- **Total Tokens**: 8509
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\.claude\projects\C--Users-sivak-rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/.ralph-tui/progress.md[0m
+[94m[Glob][0m [95mC:/Users/sivak/rtest[0m pattern: [96m**/*[0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/db/index.js[0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/routes/dashboard.js[0m
+Now I have a clear picture. Let me implement US-007 — mascot assignment based on BMI at end of step 2, plus mascot display on the dashboard.
+
+The DB already has `mascot_id` and `mascot_name` columns. I need to:
+1. Assign the mascot in `POST /api/onboarding/step2`
+2. Include mascot in `GET /api/onboarding/status`
+3. Update the dashboard to return mascot + streak mood
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m edit: "/**
+ * Maps a numeric BMI to an internal DB catego..." → "/**
+ * Maps a numeric BMI to an internal DB catego..."
+Now update the status endpoint to include mascot data:
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m edit: "  const user = db
+    .prepare(
+      "SELECT name..." → "  const user = db
+    .prepare(
+      "SELECT name..."
+[94m[TodoWrite][0m
+Now update the step2 POST to assign the mascot:
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m edit: "  const height_cm = parseFloat(req.body.height_cm)..." → "  const height_cm = parseFloat(req.body.height_cm)..."
+Now update the dashboard to return mascot + streak mood:
+[94m[Edit][0m [95mC:/Users/sivak/rtest/src/routes/dashboard.js[0m edit: "import { Router } from "express";
+import { require..." → "import { Router } from "express";
+import { require..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint to check for issues $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+Lint passes cleanly. Let me do a quick review of the final state of the modified files:
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/routes/onboarding.js[0m
+[94m[Read][0m [95mC:/Users/sivak/rtest/src/routes/dashboard.js[0m
+Everything looks correct. Now append the learnings to progress.md:
+[94m[TodoWrite][0m
+[94m[Edit][0m [95mC:/Users/sivak/rtest/.ralph-tui/progress.md[0m edit: "## 2026-02-22 - US-006
+- **What was implemented:**..." → "## 2026-02-22 - US-006
+- **What was implemented:**..."
+[94m[TodoWrite][0m
+All acceptance criteria are met:
+
+**US-007 Implementation Summary:**
+
+- **Mascot assigned at end of step 2** (`POST /api/onboarding/step2`): After BMI is calculated and categorised, `MASCOT_MAP` maps the internal category to a mascot `{ id, name }`. Both `mascot_id` and `mascot_name` are written to the DB in the same UPDATE statement as the BMI fields.
+
+- **Full mascot mapping:**
+  - Underweight → Baby Flamingo (id: 1)
+  - Normal → Energetic Fox (id: 2)
+  - Overweight → Chunky Bear (id: 3)
+  - Obese Class I → Sleepy Panda (id: 4)
+  - Obese Class II+ → Cozy Sloth (id: 5)
+
+- **Mascot on dashboard** (`GET /api/dashboard`): Returns `mascot: { id, name, mood }` along with `streak: { current, longest, mood }`.
+
+- **Streak-based mood**: `mascotMood = current_streak > 0 ? "happy" : "sad"` — computed at read-time so it's always in sync.
+
+- **Status endpoint** (`GET /api/onboarding/status`): Returns saved mascot data so the client can display it during onboarding resume flows.
+
+No DB migrations needed — `mascot_id` and `mascot_name` columns already existed in the schema from US-001.
+
+<promise>COMPLETE</promise>

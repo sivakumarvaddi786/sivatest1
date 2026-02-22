@@ -1,0 +1,73 @@
+# Iteration 14 Log
+
+## Metadata
+
+- **Task ID**: US-012
+- **Task Title**: Daily Habit Checklist — Steps
+- **Description**: As a user, I want to log my daily steps so that I can earn XP and track whether I met my step goal.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T14:38:22.209Z
+- **Ended At**: 2026-02-22T14:43:04.187Z
+- **Duration**: 4m 41s
+- **Input Tokens**: 221
+- **Output Tokens**: 20217
+- **Total Tokens**: 20438
+- **Agent**: claude
+- **Model**: claude-sonnet-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95mC:\Users\sivak\.claude\projects\C--Users-sivak-rtest\memory\MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is C:\Users\sivak\rtest.][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+
+[91m[Error: <tool_use_error>Sibling tool call errored</tool_use_error>][0m
+[94m[Bash][0m Find progress.md file $ find /c/Users/sivak/rtest -name "progress.md" 2>/dev/null | head -5
+[94m[Bash][0m List root directory $ ls /c/Users/sivak/rtest/
+[94m[Read][0m [95m/c/Users/sivak/rtest/.ralph-tui/progress.md[0m
+[94m[Bash][0m List src directory $ ls /c/Users/sivak/rtest/src/
+Now let me read the relevant existing files to understand the current state:
+[94m[Read][0m [95m/c/Users/sivak/rtest/src/routes/dashboard.js[0m
+[94m[Read][0m [95m/c/Users/sivak/rtest/src/db/index.js[0m
+[94m[Read][0m [95m/c/Users/sivak/rtest/src/routes/habits.js[0m
+[94m[Read][0m [95m/c/Users/sivak/rtest/src/index.js[0m
+Now I have a complete picture. Let me implement US-012 — Daily Habit Checklist Steps.
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/c/Users/sivak/rtest/src/db/index.js[0m edit: "// Migration: add team_reminder_at to existing dat..." → "// Migration: add team_reminder_at to existing dat..."
+[94m[TodoWrite][0m
+Now update `habits.js` with full steps logic:
+[94m[Write][0m [95m/c/Users/sivak/rtest/src/routes/habits.js[0m "import { Router } from "express";
+import { body, param, validationResult } from "express-validator";
+import { v4 as uuidv4 } from "uuid";
+import db from "../db/index.js";
+import { requireAuth } from "... (9750 chars)"
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint $ cd /c/Users/sivak/rtest && npm run lint 2>&1
+Clean. Now append to progress.md:
+[94m[TodoWrite][0m
+[94m[Read][0m [95m/c/Users/sivak/rtest/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/c/Users/sivak/rtest/.ralph-tui/progress.md[0m edit: "  - Dashboard now makes 4 DB queries (user, team, ..." → "  - Dashboard now makes 4 DB queries (user, team, ..."
+[94m[TodoWrite][0m
+US-012 is complete. Here's a summary of what was implemented:
+
+**Files changed:**
+
+- **`src/db/index.js`** — 4 migration columns added to `daily_logs`:
+  - `steps_manual INTEGER` — tracks manually entered steps
+  - `steps_google_fit INTEGER` — tracks Google Fit synced steps
+  - `steps_goal_xp_awarded INTEGER DEFAULT 0` — prevents double-awarding goal XP
+  - `steps_last_bonus_at TEXT` — tracks cooldown for bonus XP
+
+- **`src/routes/habits.js`** — `PATCH /api/habits/today/steps` now routes through a dedicated `handleStepsUpdate()` helper with full AC coverage:
+  - `source: "manual" | "google_fit"` body param (default: `"manual"`)
+  - Manual entries capped at 50,000
+  - Effective steps = `max(steps_manual, steps_google_fit)`
+  - Goal XP awarded once per day: 20 XP (5k goal) or 40 XP (10k goal)
+  - Bonus: +5 XP when manual steps increase ≥500 with 2-hour cooldown
+  - Both `daily_logs.xp_earned` and `users.xp_total` updated atomically in a transaction
+  - `GET /api/habits/today` response now includes `stepsManual` and `stepsGoogleFit` fields
+
+<promise>COMPLETE</promise>

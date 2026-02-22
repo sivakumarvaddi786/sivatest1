@@ -1,0 +1,85 @@
+# Iteration 2 Log
+
+## Metadata
+
+- **Task ID**: US-015
+- **Task Title**: Daily Habit Checklist — Sleep
+- **Description**: As a user, I want to log my sleep start and wake-up times so that I can track whether I am getting enough sleep.
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-02-22T18:06:32.591Z
+- **Ended At**: 2026-02-22T18:09:26.516Z
+- **Duration**: 2m 53s
+- **Input Tokens**: 67
+- **Output Tokens**: 8821
+- **Total Tokens**: 8888
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current codebase state before implementing US-015.
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Glob][0m pattern: [96msrc/**/*.js[0m
+Let me read the key files for this implementation.
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m
+Now I have a clear picture. Let me implement US-015 — sleep start/wake-up time logging with auto-calculated hours and XP awards.
+[94m[TodoWrite][0m
+First, add the migration columns for sleep tracking.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\db\index.js[0m edit: "// Migration: add hydration XP tracking columns to..." → "// Migration: add hydration XP tracking columns to..."
+[94m[TodoWrite][0m
+Now implement the sleep handler and wire it into the PATCH route.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "// US-014: hydration XP constants
+const HYDRATION_..." → "// US-014: hydration XP constants
+const HYDRATION_..."
+Now make the `value` validator conditional so sleep doesn't require it (sleep uses `sleepStart`/`sleepEnd` instead).
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    body("value").exists().withMessage("Value is r..." → "    body("value")
+      .if(param("category").not(..."
+Now add the sleep branch in the PATCH handler, right after the hydration branch.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "    // Hydration has dedicated logic (per-glass XP..." → "    // Hydration has dedicated logic (per-glass XP..."
+Now add the `handleSleepUpdate` function. I'll add it after `handleHydrationUpdate`.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "/**
+ * Handles step updates with source tracking, ..." → "/**
+ * Handles sleep updates with start/end time l..."
+[94m[TodoWrite][0m
+Now update the GET /today response to include sleep start/end details.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\habits.js[0m edit: "          sleep: log.sleep_hours,
+          moveme..." → "          sleep: log.sleep_hours,
+          sleepS..."
+Now update the dashboard to include sleep details in the checklist.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "      hydration: {
+        current: habitLog?.hydr..." → "      hydration: {
+        current: habitLog?.hydr..."
+Also update the dashboard progress section to include sleep start/end.
+[94m[Edit][0m [95mC:\Users\sivak\rtest\src\routes\dashboard.js[0m edit: "            sleep: habitLog.sleep_hours,
+         ..." → "            sleep: habitLog.sleep_hours,
+         ..."
+[94m[TodoWrite][0m
+[94m[Bash][0m Run ESLint on src directory $ cd /c/Users/sivak/rtest && npx eslint src/ 2>&1
+Lint passes clean. Let me also verify the app starts without errors.
+[94m[Bash][0m Verify app starts without errors $ cd /c/Users/sivak/rtest && timeout 5 node src/index.js 2>&1 || true
+[94m[TodoWrite][0m
+[94m[Read][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m
+[94m[Edit][0m [95mC:\Users\sivak\rtest\.ralph-tui\progress.md[0m edit: "  - Dashboard `hydration` summary is a convenience..." → "  - Dashboard `hydration` summary is a convenience..."
+[94m[TodoWrite][0m
+US-015 is complete. Here's a summary of what was implemented:
+
+**US-015 — Daily Habit Checklist: Sleep**
+
+| AC | Implementation |
+|---|---|
+| Log sleep start time | `PATCH /api/habits/today/sleep` with `{ sleepStart: "HH:MM" }` |
+| Log wake-up time | `PATCH /api/habits/today/sleep` with `{ sleepEnd: "HH:MM" }` |
+| Sleep hours auto-calculated | When both start/end present, hours = time delta (handles midnight crossover) |
+| 5 XP for logging sleep start | Tracked via `sleep_xp_start_awarded` flag, awarded once per day |
+| 5 XP for logging wake-up | Tracked via `sleep_xp_end_awarded` flag, awarded once per day |
+| 15 XP bonus for 7+ hours | Tracked via `sleep_goal_xp_awarded` flag, awarded once per day |
+
+**Files changed:** `src/db/index.js` (5 migration columns), `src/routes/habits.js` (sleep handler + constants + GET response), `src/routes/dashboard.js` (sleep summary in checklist)
+
+<promise>COMPLETE</promise>
